@@ -21,7 +21,8 @@ python3 -m http.server 8000
 
 ### 2. Run c2.py
 Make sure you set up a virtual environment to install flask-cors
-```python3 -m venv venv && source venv/bin/activate
+```
+   python3 -m venv venv && source venv/bin/activate
    pip3 install flask-cors
    python3 c2.py
 ```
