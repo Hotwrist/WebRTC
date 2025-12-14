@@ -1,0 +1,6 @@
+[
+	{"username":"victim_user","token":"abcd1234-internal-auth"}, 
+	{"username":"victim_user2","token":"victim1234-internal-auth"},
+	{"username":"victim_user3","token":"juicy1234-internal-auth"},
+	{"username":"victim_user4","token":"qwerty1234-internal-auth"}
+]
